@@ -29,8 +29,9 @@ class GamePad extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
             Column(
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                IconButton(
+                GamePadButton(
                   icon: Icon(Icons.arrow_back),
                   onPressed: () {
                     setDirection(Direction.left);
@@ -40,15 +41,16 @@ class GamePad extends StatelessWidget {
               ],
             ),
             Column(
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                IconButton(
+                GamePadButton(
                   icon: Icon(Icons.arrow_upward),
                   onPressed: () {
                     setDirection(Direction.up);
                   },
                   iconSize: 50,
                 ),
-                IconButton(
+                GamePadButton(
                   icon: Icon(Icons.arrow_downward),
                   onPressed: () {
                     setDirection(Direction.down);
@@ -58,8 +60,9 @@ class GamePad extends StatelessWidget {
               ],
             ),
             Column(
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                IconButton(
+                GamePadButton(
                   icon: Icon(Icons.arrow_forward),
                   onPressed: () {
                     setDirection(Direction.right);
@@ -71,6 +74,28 @@ class GamePad extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+class GamePadButton extends StatelessWidget {
+  GamePadButton({
+    Key key,
+    @required this.onPressed,
+    @required this.icon,
+    @required this.iconSize,
+  });
+
+  final VoidCallback onPressed;
+  final Icon icon;
+  final double iconSize;
+
+  @override
+  Widget build(BuildContext context) {
+    return IconButton(
+      icon: icon,
+      onPressed: onPressed,
+      iconSize: iconSize,
     );
   }
 }

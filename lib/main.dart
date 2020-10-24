@@ -28,8 +28,8 @@ class _HomeScreenWidgetState extends State<HomeScreenWidget> {
   int _selectedIndex = 0;
   final List<Widget> _screenList = [
     MyHomePage(title: 'hi'),
-    MyHomePage(title: 'hi'),
-    MyHomePage(title: 'hi'),
+    Text('Score'),
+    Text('Board'),
   ];
 
   void _onNavBarTapped(int index) {

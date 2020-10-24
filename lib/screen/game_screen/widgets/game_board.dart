@@ -49,6 +49,10 @@ class GameBoard extends StatelessWidget {
   Widget _drawItem(Color color) {
     return Container(
       color: color,
+      child: Icon(
+        Icons.plus_one,
+        color: Colors.white,
+      ),
     );
   }
 
