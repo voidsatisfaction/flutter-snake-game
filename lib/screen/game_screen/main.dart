@@ -8,6 +8,8 @@ import 'package:snake_game/screen/game_screen/custom_types.dart';
 import 'package:snake_game/screen/game_screen/widgets/game_pad.dart';
 import 'package:snake_game/screen/game_screen/widgets/game_board.dart';
 
+import 'package:flutter/foundation.dart';
+
 class MyHomePage extends StatefulWidget {
   MyHomePage({Key key, this.title}) : super(key: key);
 
@@ -26,8 +28,84 @@ class MyHomePage extends StatefulWidget {
   _MyHomePageState createState() => _MyHomePageState();
 }
 
+// TODO: SnakeManager
+
+// TODO: Item
+
+class Snake {
+  Snake({
+    Key key,
+    @required this.coordinates,
+    @required this.direction,
+  });
+
+  List<List<int>> coordinates;
+  List<int> beforeLastTail;
+  Direction direction;
+  Color headColor;
+  Color bodyColor;
+
+  final directionCoordinateMap = {
+    Direction.down: [1, 0],
+    Direction.right: [0, 1],
+    Direction.up: [-1, 0],
+    Direction.left: [0, -1],
+  };
+
+  void move() {
+    final List<int> coordinate = directionCoordinateMap[direction];
+
+    final List<int> newHead = [
+      getHeadRow() + coordinate[0],
+      getHeadColumn() + coordinate[1]
+    ];
+
+    beforeLastTail = coordinates.last;
+
+    coordinates = [newHead, ...getCoordinates()];
+    coordinates.removeLast();
+  }
+
+  // TODO: use takeItem(Item item) instead
+  void addTail(List<int> coordinate) {
+    coordinates = [...getCoordinates(), coordinate];
+  }
+
+  void setDirection(Direction dir) {
+    direction = dir;
+  }
+
+  Direction getDirection() {
+    return direction;
+  }
+
+  List<int> getHead() {
+    return [...coordinates[0]];
+  }
+
+  int getHeadRow() {
+    return getHead()[0];
+  }
+
+  int getHeadColumn() {
+    return getHead()[1];
+  }
+
+  List<List<int>> getCoordinates() {
+    final List<List<int>> newCoordinates = [];
+
+    for (final coordinate in coordinates) {
+      newCoordinates.add([...coordinate]);
+    }
+
+    return newCoordinates;
+  }
+}
+
 class _MyHomePageState extends State<MyHomePage> {
   final int _boardSize = 12;
+
+  Snake snake;
 
   Direction _currentSnakeDirection = Direction.up;
   List<List<int>> _currentSnakeLocation = [
@@ -48,7 +126,20 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   void _startGame() {
-    _itemLocation = _createRandomCoordinate(_currentSnakeLocation);
+    int centerRow = _boardSize ~/ 2;
+    int centerColumn = _boardSize ~/ 2;
+
+    snake = Snake(
+      coordinates: [
+        [centerRow, centerColumn],
+        [centerRow + 1, centerColumn],
+        [centerRow + 2, centerColumn],
+      ],
+      direction: Direction.up,
+    );
+    // why not working?
+    _itemLocation = _createRandomCoordinate(snake.getCoordinates());
+    // _itemLocation = _createRandomCoordinate(_currentSnakeLocation);
 
     Timer _frameTimer = Timer.periodic(
       new Duration(milliseconds: speed),
@@ -60,33 +151,20 @@ class _MyHomePageState extends State<MyHomePage> {
 
   void _frame() {
     // move snake
-    final List<int> removedTail = _moveSnake();
+    _moveSnake();
 
     // judge collision
     _finishIfCollision();
 
     // item eating
-    _takeItem(removedTail);
+    _takeItem();
 
     // render snake
     _render();
   }
 
-  List<int> _moveSnake() {
-    final dirCoordinateMap = {
-      Direction.down: [1, 0],
-      Direction.right: [0, 1],
-      Direction.up: [-1, 0],
-      Direction.left: [0, -1],
-    };
-
-    final coordinate = dirCoordinateMap[_currentSnakeDirection];
-
-    final head = _currentSnakeLocation[0];
-    final newHead = [head[0] + coordinate[0], head[1] + coordinate[1]];
-
-    _currentSnakeLocation.insert(0, newHead);
-    return _currentSnakeLocation.removeLast();
+  void _moveSnake() {
+    snake.move();
   }
 
   void _finishIfCollision() {
@@ -94,10 +172,10 @@ class _MyHomePageState extends State<MyHomePage> {
       _frameTimer.cancel();
     }
 
-    final head = _currentSnakeLocation[0];
-    final int headRow = head[0];
-    final int headColumn = head[1];
-    final _currentSnakeLocationWithoutHead = [..._currentSnakeLocation];
+    final List<int> head = snake.getHead();
+    final int headRow = snake.getHeadRow();
+    final int headColumn = snake.getHeadColumn();
+    final _currentSnakeLocationWithoutHead = [...snake.getCoordinates()];
     _currentSnakeLocationWithoutHead.removeAt(0);
 
     // head edge collision
@@ -117,25 +195,25 @@ class _MyHomePageState extends State<MyHomePage> {
     }
   }
 
-  void _takeItem(List<int> removedTail) {
-    final head = _currentSnakeLocation[0];
+  void _takeItem() {
+    final head = snake.getHead();
 
     if (_listDeepEqual(head, _itemLocation)) {
-      _currentSnakeLocation.add(removedTail);
+      snake.addTail(snake.beforeLastTail);
       _itemLocation = _createRandomCoordinate(_currentSnakeLocation);
     }
   }
 
   void _render() {
     setState(() {
-      _currentSnakeLocation = [..._currentSnakeLocation];
+      _currentSnakeLocation = snake.getCoordinates();
       _itemLocation = [..._itemLocation];
     });
   }
 
   void _setDirection(Direction direction) {
     setState(() {
-      _currentSnakeDirection = direction;
+      snake.setDirection(direction);
     });
   }
 
@@ -146,7 +224,7 @@ class _MyHomePageState extends State<MyHomePage> {
   List<int> _createRandomCoordinate([List<List<int>> withoutCoordinates]) {
     final random = new Random();
 
-    final randomCoordinate = [
+    final List<int> randomCoordinate = [
       random.nextInt(_boardSize),
       random.nextInt(_boardSize),
     ];
