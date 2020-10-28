@@ -7,6 +7,7 @@ import 'package:flutter/foundation.dart';
 import 'package:snake_game/screen/game_screen/custom_types.dart';
 import 'package:snake_game/screen/game_screen/widgets/game_pad.dart';
 import 'package:snake_game/screen/game_screen/widgets/game_board.dart';
+import 'package:snake_game/screen/game_screen/widgets/game_score_board.dart';
 import 'package:snake_game/utils.dart';
 
 class MyHomePage extends StatefulWidget {
@@ -125,9 +126,12 @@ class Snake implements BoardEntity {
 // This class is Snake and board manager
 class _MyHomePageState extends State<MyHomePage> {
   final int _boardSize = 12;
+  // higher value => faster
+  final double speedAcceleration = 1.05;
 
   Snake snake;
   Item item;
+  int score;
 
   Timer _frameTimer;
   int speed = 300;
@@ -143,26 +147,24 @@ class _MyHomePageState extends State<MyHomePage> {
     int centerRow = _boardSize ~/ 2;
     int centerColumn = _boardSize ~/ 2;
 
-    snake = Snake(
-      coordinates: [
-        [centerRow, centerColumn],
-        [centerRow + 1, centerColumn],
-        [centerRow + 2, centerColumn],
-      ],
-      direction: Direction.up,
-    );
-    item = Item(
-      coordinate: _createRandomCoordinate(
-        snake.getCoordinates(),
-      ),
-    );
+    setState(() {
+      snake = Snake(
+        coordinates: [
+          [centerRow, centerColumn],
+          [centerRow + 1, centerColumn],
+          [centerRow + 2, centerColumn],
+        ],
+        direction: Direction.up,
+      );
+      item = Item(
+        coordinate: _createRandomCoordinate(
+          snake.getCoordinates(),
+        ),
+      );
+      score = 0;
+    });
 
-    _frameTimer = Timer.periodic(
-      new Duration(milliseconds: speed),
-      (timer) {
-        _frame();
-      },
-    );
+    _resetFrameTimer();
   }
 
   void _frame() {
@@ -219,6 +221,10 @@ class _MyHomePageState extends State<MyHomePage> {
           snakeCoordinates,
         ),
       );
+
+      _updateScore();
+
+      _updateSpeed();
     }
   }
 
@@ -226,6 +232,33 @@ class _MyHomePageState extends State<MyHomePage> {
     setState(() {
       snake = snake;
       item = item;
+    });
+  }
+
+  void _updateScore() {
+    setState(() {
+      score = score + 1;
+    });
+  }
+
+  void _updateSpeed() {
+    _frameTimer.cancel();
+
+    setState(() {
+      speed = (speed * (1 / speedAcceleration)).floor();
+    });
+
+    _resetFrameTimer();
+  }
+
+  void _resetFrameTimer() {
+    setState(() {
+      _frameTimer = Timer.periodic(
+        new Duration(milliseconds: speed),
+        (timer) {
+          _frame();
+        },
+      );
     });
   }
 
@@ -265,6 +298,9 @@ class _MyHomePageState extends State<MyHomePage> {
         child: Column(
           children: [
             // game board
+            GameScoreBoard(
+              score: score,
+            ),
             Expanded(
               child: GameBoard(
                 currentSnakeLocation: snake.getCoordinates(),
