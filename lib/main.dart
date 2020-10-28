@@ -1,11 +1,43 @@
+import 'dart:async';
+
+import 'package:path/path.dart';
+import 'package:sqflite/sqflite.dart';
+
 import 'package:flutter/material.dart';
 import 'package:snake_game/screen/game_screen/main.dart';
+import 'package:snake_game/db_model.dart';
 
-void main() {
-  runApp(MyApp());
+const APP_VERSION = "1.0.0";
+const DB_VERSION = 1;
+
+Future<Database> initDatabase(String fileName) async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  String databasesPath = await getDatabasesPath();
+
+  final Future<Database> database = openDatabase(
+    join(databasesPath, fileName),
+    version: DB_VERSION,
+    onCreate: (db, version) {
+      INIT_SCRIPTS.forEach((script) async => await db.execute(script));
+    },
+    onUpgrade: (db, oldVersion, newVersion) {
+      MIGRATION_SCRIPTS.forEach((script) async => await db.execute(script));
+    },
+  );
+
+  return database;
 }
 
-class MyApp extends StatelessWidget {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  final database = await initDatabase('snake_database.db');
+
+  runApp(SnakeGameApp());
+}
+
+class SnakeGameApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -27,7 +59,7 @@ class HomeScreenWidget extends StatefulWidget {
 class _HomeScreenWidgetState extends State<HomeScreenWidget> {
   int _selectedIndex = 0;
   final List<Widget> _screenList = [
-    MyHomePage(title: 'hi'),
+    MyHomePage(),
     Text('Score'),
     Text('Board'),
   ];
