@@ -4,7 +4,9 @@ import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 
 import 'package:flutter/material.dart';
+
 import 'package:snake_game/screen/game_screen/main.dart';
+import 'package:snake_game/screen/score_screen/main.dart';
 import 'package:snake_game/db_model.dart';
 
 const APP_VERSION = "1.0.0";
@@ -80,7 +82,7 @@ class _HomeScreenWidgetState extends State<HomeScreenWidget> {
   final Database db;
 
   int _selectedIndex = 0;
-  List<Widget> _screenList;
+  List<Map<String, dynamic>> _screenList = [];
 
   _HomeScreenWidgetState({
     this.db,
@@ -92,9 +94,9 @@ class _HomeScreenWidgetState extends State<HomeScreenWidget> {
 
     setState(() {
       _screenList = [
-        GameScreen(db: db),
-        Text('Score'),
-        Text('Board'),
+        {'title': 'Snake game', 'screen': GameScreen(db: db)},
+        {'title': 'Hall of fame', 'screen': ScoreScreen()},
+        {'title': 'Board', 'screen': Text('Board')},
       ];
     });
   }
@@ -107,12 +109,18 @@ class _HomeScreenWidgetState extends State<HomeScreenWidget> {
 
   @override
   Widget build(BuildContext context) {
+    if (_screenList.length == 0) {
+      return null;
+    }
+
+    Map<String, dynamic> screenData = _screenList[_selectedIndex];
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Snake game'),
+        title: Text(screenData['title']),
       ),
       body: Center(
-        child: _screenList[_selectedIndex],
+        child: screenData['screen'],
       ),
       bottomNavigationBar: BottomNavigationBar(
         items: const <BottomNavigationBarItem>[
