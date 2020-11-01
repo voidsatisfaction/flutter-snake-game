@@ -3,18 +3,26 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
+import 'package:snake_game/db_model.dart';
+import 'package:sqflite/sqflite.dart';
 
 import 'package:snake_game/screen/game_screen/custom_types.dart';
 import 'package:snake_game/screen/game_screen/widgets/game_pad.dart';
 import 'package:snake_game/screen/game_screen/widgets/game_board.dart';
 import 'package:snake_game/screen/game_screen/widgets/game_score_board.dart';
+import 'package:snake_game/service/game_score_service.dart';
 import 'package:snake_game/utils.dart';
 
-class MyHomePage extends StatefulWidget {
-  MyHomePage({Key key}) : super(key: key);
+class GameScreen extends StatefulWidget {
+  final Database db;
+
+  GameScreen({
+    Key key,
+    this.db,
+  }) : super(key: key);
 
   @override
-  _MyHomePageState createState() => _MyHomePageState();
+  _GameScreenState createState() => _GameScreenState(db: db);
 }
 
 abstract class BoardEntity<T> {
@@ -113,23 +121,42 @@ class Snake implements BoardEntity {
 }
 
 // This class is Snake and board manager
-class _MyHomePageState extends State<MyHomePage> {
+class _GameScreenState extends State<GameScreen> with GameScoreService {
   final int _boardSize = 12;
   // higher value => faster
   final double speedAcceleration = 1.05;
 
+  final Database db;
+
   Snake snake;
   Item item;
   int score;
+  int maxScore = 0;
 
   Timer _frameTimer;
   int speed = 300;
+
+  _GameScreenState({
+    this.db,
+  });
 
   @override
   void initState() {
     super.initState();
 
     _startGame();
+
+    _updateMaxScore();
+  }
+
+  void _updateMaxScore() async {
+    final List<GameScore> currentMaxScores = await getMaxScores(db, 1);
+    final int currentMaxScore =
+        currentMaxScores.length == 0 ? 0 : currentMaxScores[0].score;
+
+    setState(() {
+      maxScore = currentMaxScore;
+    });
   }
 
   void _startGame() {
@@ -187,12 +214,14 @@ class _MyHomePageState extends State<MyHomePage> {
         headColumn < 0 ||
         headRow >= _boardSize ||
         headColumn >= _boardSize) {
+      _displayGameScoreMessageDialog(context);
       _gameOver();
       return;
     }
 
     for (final location in _currentSnakeLocationWithoutHead) {
       if (listDeepEqual(head, location)) {
+        _displayGameScoreMessageDialog(context);
         _gameOver();
         return;
       }
@@ -251,6 +280,74 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
+  void onPressGameScoreSubmitButton(
+    BuildContext context,
+    TextEditingController _nameTextFieldController,
+    TextEditingController _messageTextFieldController,
+  ) async {
+    final String message = _messageTextFieldController.text;
+    final String name = _nameTextFieldController.text;
+    final DateTime createdAt = DateTime.now();
+
+    GameScore gameScore = GameScore.withoutId(
+      name,
+      score,
+      message,
+      createdAt,
+    );
+
+    try {
+      await createGameScore(db, gameScore);
+    } catch (e) {
+      print(e);
+    }
+
+    Navigator.of(context).pop();
+  }
+
+  Future<Widget> _displayGameScoreMessageDialog(BuildContext context) async {
+    TextEditingController _messageTextFieldController = TextEditingController();
+    TextEditingController _nameTextFieldController = TextEditingController();
+
+    return showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) {
+        return AlertDialog(
+          title: Text('Your score: $score'),
+          content: Column(
+            children: [
+              TextField(
+                controller: _nameTextFieldController,
+                textInputAction: TextInputAction.go,
+                keyboardType: TextInputType.numberWithOptions(),
+                decoration: InputDecoration(hintText: 'Write your name'),
+              ),
+              TextField(
+                controller: _messageTextFieldController,
+                textInputAction: TextInputAction.go,
+                keyboardType: TextInputType.numberWithOptions(),
+                decoration: InputDecoration(hintText: 'Leave a message'),
+              ),
+            ],
+          ),
+          actions: <Widget>[
+            new FlatButton(
+              child: new Text('Submit'),
+              onPressed: () {
+                onPressGameScoreSubmitButton(
+                  context,
+                  _nameTextFieldController,
+                  _messageTextFieldController,
+                );
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   List<int> _createRandomCoordinate([List<List<int>> withoutCoordinates]) {
     final random = new Random();
 
@@ -289,6 +386,7 @@ class _MyHomePageState extends State<MyHomePage> {
             // game board
             GameScoreBoard(
               score: score,
+              maxScore: maxScore,
             ),
             Expanded(
               child: GameBoard(

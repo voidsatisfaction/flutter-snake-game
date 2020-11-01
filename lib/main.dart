@@ -15,11 +15,13 @@ Future<Database> initDatabase(String fileName) async {
 
   String databasesPath = await getDatabasesPath();
 
-  final Future<Database> database = openDatabase(
+  final Database database = await openDatabase(
     join(databasesPath, fileName),
     version: DB_VERSION,
     onCreate: (db, version) {
-      INIT_SCRIPTS.forEach((script) async => await db.execute(script));
+      INIT_SCRIPTS.forEach((script) async {
+        await db.execute(script);
+      });
     },
     onUpgrade: (db, oldVersion, newVersion) {
       MIGRATION_SCRIPTS.forEach((script) async => await db.execute(script));
@@ -32,12 +34,22 @@ Future<Database> initDatabase(String fileName) async {
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  final database = await initDatabase('snake_database.db');
+  final Database database = await initDatabase('snake_database.db');
 
-  runApp(SnakeGameApp());
+  runApp(
+    SnakeGameApp(
+      db: database,
+    ),
+  );
 }
 
 class SnakeGameApp extends StatelessWidget {
+  final Database db;
+
+  SnakeGameApp({
+    this.db,
+  });
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -46,23 +58,46 @@ class SnakeGameApp extends StatelessWidget {
         primarySwatch: Colors.blue,
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
-      home: HomeScreenWidget(),
+      home: HomeScreenWidget(
+        db: db,
+      ),
     );
   }
 }
 
 class HomeScreenWidget extends StatefulWidget {
+  final Database db;
+
+  HomeScreenWidget({
+    this.db,
+  });
+
   @override
-  _HomeScreenWidgetState createState() => _HomeScreenWidgetState();
+  _HomeScreenWidgetState createState() => _HomeScreenWidgetState(db: db);
 }
 
 class _HomeScreenWidgetState extends State<HomeScreenWidget> {
+  final Database db;
+
   int _selectedIndex = 0;
-  final List<Widget> _screenList = [
-    MyHomePage(),
-    Text('Score'),
-    Text('Board'),
-  ];
+  List<Widget> _screenList;
+
+  _HomeScreenWidgetState({
+    this.db,
+  });
+
+  @override
+  void initState() {
+    super.initState();
+
+    setState(() {
+      _screenList = [
+        GameScreen(db: db),
+        Text('Score'),
+        Text('Board'),
+      ];
+    });
+  }
 
   void _onNavBarTapped(int index) {
     setState(() {
