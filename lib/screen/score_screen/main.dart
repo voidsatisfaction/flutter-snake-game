@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+
+import 'package:snake_game/business_logic/GameScoreBusinessLogicComponent.dart';
+import 'package:snake_game/db_model.dart';
 
 class ScoreScreen extends StatefulWidget {
   @override
@@ -7,16 +11,51 @@ class ScoreScreen extends StatefulWidget {
 
 class _ScoreScreenState extends State<ScoreScreen> {
   bool loading = true;
+  GameScoreBloc _gameScoreBloc;
 
-  Widget _buildTopRow() {
+  @override
+  void initState() {
+    super.initState();
+    _gameScoreBloc = BlocProvider.of<GameScoreBloc>(context);
+
+    _gameScoreBloc.add(GameScoreEvent.fetch);
+  }
+
+  Widget _starNumberWidget(
+    int score,
+    double starSize,
+    double scoreSize,
+  ) {
     return Container(
-      // decoration: BoxDecoration(
-      //   border: Border.all(
-      //     // color: Colors.,
-      //     width: 8,
-      //   ),
-      // ),
-      padding: EdgeInsets.all(16.0),
+      child: Row(
+        children: [
+          Icon(
+            Icons.star,
+            color: Colors.red[500],
+            size: starSize,
+          ),
+          Text(
+            '$score',
+            style: TextStyle(
+              fontSize: scoreSize,
+              fontWeight: FontWeight.w300,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTopRow(
+    String name,
+    int score,
+    String message,
+  ) {
+    return Container(
+      padding: EdgeInsets.only(
+        top: 10,
+        bottom: 10,
+      ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.start,
         children: [
@@ -26,58 +65,47 @@ class _ScoreScreenState extends State<ScoreScreen> {
             height: 200,
             fit: BoxFit.fill,
           ),
-          Container(
-            height: 200,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  // height: 100,
-                  child: Row(
-                    children: [
-                      Text(
-                        'Name',
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.w400,
+          Expanded(
+            child: Container(
+              height: 200,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    // height: 100,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          name,
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.w400,
+                          ),
                         ),
-                      ),
-                      Container(
-                        padding: EdgeInsets.only(left: 70),
-                        child: Row(
-                          children: [
-                            Icon(
-                              Icons.star,
-                              color: Colors.red[500],
-                              size: 30,
-                            ),
-                            Text(
-                              '41',
-                              style: TextStyle(
-                                fontSize: 30,
-                                fontWeight: FontWeight.w300,
-                              ),
-                            ),
-                          ],
+                        _starNumberWidget(
+                          score,
+                          25,
+                          25,
                         ),
-                      ),
-                    ],
-                  ),
-                ),
-                Container(
-                  padding: EdgeInsets.only(
-                    top: 10,
-                  ),
-                  child: Text(
-                    'Message',
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w400,
-                      color: Colors.grey[700],
+                      ],
                     ),
                   ),
-                ),
-              ],
+                  Container(
+                    padding: EdgeInsets.only(
+                      top: 10,
+                    ),
+                    child: Text(
+                      message,
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w400,
+                        color: Colors.grey[700],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ],
@@ -85,24 +113,98 @@ class _ScoreScreenState extends State<ScoreScreen> {
     );
   }
 
-  Widget _buildPlainRow() {}
+  Widget _buildPlainRow(
+    String name,
+    int score,
+    String message,
+    int ranking,
+  ) {
+    return Container(
+      height: 100,
+      padding: EdgeInsets.only(
+        top: 10,
+        left: 30,
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            child: Text(
+              '#$ranking',
+              style: TextStyle(
+                // fontSize: 15,
+                fontWeight: FontWeight.w400,
+              ),
+            ),
+          ),
+          Container(
+            padding: EdgeInsets.only(
+              top: 2,
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  name,
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w400,
+                  ),
+                ),
+                _starNumberWidget(score, 20, 20)
+              ],
+            ),
+          ),
+          Container(
+            padding: EdgeInsets.only(
+              top: 10,
+            ),
+            child: Text(
+              message,
+              style: TextStyle(
+                color: Colors.grey[700],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
-    return ListView.separated(
-      padding: EdgeInsets.only(
-        top: 0,
-      ),
-      itemCount: 10,
-      itemBuilder: (context, i) {
-        // top view
-        if (i == 0) {
-          return _buildTopRow();
-        }
+    return BlocBuilder<GameScoreBloc, List<GameScore>>(
+      builder: (context, gameScores) {
+        return ListView.separated(
+          padding: EdgeInsets.only(
+            top: 0,
+            left: 30,
+            right: 30,
+          ),
+          itemCount: gameScores.length,
+          itemBuilder: (context, i) {
+            GameScore gameScore = gameScores[i];
+            // top view
+            if (i == 0) {
+              return _buildTopRow(
+                gameScore.name,
+                gameScore.score,
+                gameScore.message,
+              );
+            }
 
-        return _buildPlainRow();
+            return _buildPlainRow(
+              gameScore.name,
+              gameScore.score,
+              gameScore.message,
+              i + 1,
+            );
+          },
+          separatorBuilder: (BuildContext context, int index) =>
+              const Divider(),
+        );
       },
-      separatorBuilder: (BuildContext context, int index) => const Divider(),
     );
   }
 }

@@ -1,6 +1,9 @@
 import 'dart:async';
 
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:path/path.dart';
+import 'package:snake_game/business_logic/GameScoreBusinessLogicComponent.dart';
+import 'package:snake_game/repository/game_score.dart';
 import 'package:sqflite/sqflite.dart';
 
 import 'package:flutter/material.dart';
@@ -92,11 +95,27 @@ class _HomeScreenWidgetState extends State<HomeScreenWidget> {
   void initState() {
     super.initState();
 
+    GameScoreRepository gameScoreRepository = GameScoreRepository(db: db);
+
     setState(() {
       _screenList = [
-        {'title': 'Snake game', 'screen': GameScreen(db: db)},
-        {'title': 'Hall of fame', 'screen': ScoreScreen()},
-        {'title': 'Board', 'screen': Text('Board')},
+        {
+          'title': 'Snake game',
+          'screen': GameScreen(db: db),
+        },
+        {
+          'title': 'Hall of fame',
+          'screen': BlocProvider(
+            create: (context) => GameScoreBloc(
+              gameScoreRepository: gameScoreRepository,
+            ),
+            child: ScoreScreen(),
+          ),
+        },
+        {
+          'title': 'Board',
+          'screen': Text('Board'),
+        },
       ];
     });
   }
