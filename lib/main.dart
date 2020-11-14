@@ -1,4 +1,5 @@
 import 'dart:async';
+<<<<<<< Updated upstream
 
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
@@ -6,6 +7,21 @@ import 'package:sqflite/sqflite.dart';
 import 'package:flutter/material.dart';
 import 'package:snake_game/screen/game_screen/main.dart';
 import 'package:snake_game/db_model.dart';
+=======
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:path/path.dart';
+import 'package:sqflite/sqflite.dart';
+
+import 'package:snake_game/db_model.dart';
+
+import 'package:snake_game/business_logic/GameScoreBusinessLogicComponent.dart';
+import 'package:snake_game/repository/game_score.dart';
+
+import 'package:snake_game/screen/game_screen/main.dart';
+import 'package:snake_game/screen/score_screen/main.dart';
+import 'package:snake_game/screen/board_screen/main.dart';
+>>>>>>> Stashed changes
 
 const APP_VERSION = "1.0.0";
 const DB_VERSION = 1;
@@ -92,9 +108,29 @@ class _HomeScreenWidgetState extends State<HomeScreenWidget> {
 
     setState(() {
       _screenList = [
+<<<<<<< Updated upstream
         GameScreen(db: db),
         Text('Score'),
         Text('Board'),
+=======
+        {
+          'title': 'Snake game',
+          'screen': GameScreen(db: db),
+        },
+        {
+          'title': 'Hall of fame',
+          'screen': BlocProvider(
+            create: (context) => GameScoreBloc(
+              gameScoreRepository: gameScoreRepository,
+            ),
+            child: ScoreScreen(),
+          ),
+        },
+        {
+          'title': '',
+          'screen': BoardScreen(),
+        },
+>>>>>>> Stashed changes
       ];
     });
   }
@@ -108,9 +144,17 @@ class _HomeScreenWidgetState extends State<HomeScreenWidget> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+<<<<<<< Updated upstream
       appBar: AppBar(
         title: const Text('Snake game'),
       ),
+=======
+      appBar: screenData['title'] != null && screenData['title'].length > 0
+          ? AppBar(
+              title: Text(screenData['title']),
+            )
+          : null,
+>>>>>>> Stashed changes
       body: Center(
         child: _screenList[_selectedIndex],
       ),
