@@ -1,27 +1,16 @@
 import 'dart:async';
-<<<<<<< Updated upstream
 
-import 'package:path/path.dart';
-import 'package:sqflite/sqflite.dart';
-
-import 'package:flutter/material.dart';
-import 'package:snake_game/screen/game_screen/main.dart';
-import 'package:snake_game/db_model.dart';
-=======
-import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:path/path.dart';
-import 'package:sqflite/sqflite.dart';
-
-import 'package:snake_game/db_model.dart';
-
 import 'package:snake_game/business_logic/GameScoreBusinessLogicComponent.dart';
 import 'package:snake_game/repository/game_score.dart';
+import 'package:sqflite/sqflite.dart';
+
+import 'package:flutter/material.dart';
 
 import 'package:snake_game/screen/game_screen/main.dart';
 import 'package:snake_game/screen/score_screen/main.dart';
-import 'package:snake_game/screen/board_screen/main.dart';
->>>>>>> Stashed changes
+import 'package:snake_game/db_model.dart';
 
 const APP_VERSION = "1.0.0";
 const DB_VERSION = 1;
@@ -96,7 +85,7 @@ class _HomeScreenWidgetState extends State<HomeScreenWidget> {
   final Database db;
 
   int _selectedIndex = 0;
-  List<Widget> _screenList;
+  List<Map<String, dynamic>> _screenList = [];
 
   _HomeScreenWidgetState({
     this.db,
@@ -106,13 +95,10 @@ class _HomeScreenWidgetState extends State<HomeScreenWidget> {
   void initState() {
     super.initState();
 
+    GameScoreRepository gameScoreRepository = GameScoreRepository(db: db);
+
     setState(() {
       _screenList = [
-<<<<<<< Updated upstream
-        GameScreen(db: db),
-        Text('Score'),
-        Text('Board'),
-=======
         {
           'title': 'Snake game',
           'screen': GameScreen(db: db),
@@ -127,10 +113,9 @@ class _HomeScreenWidgetState extends State<HomeScreenWidget> {
           ),
         },
         {
-          'title': '',
-          'screen': BoardScreen(),
+          'title': 'Board',
+          'screen': Text('Board'),
         },
->>>>>>> Stashed changes
       ];
     });
   }
@@ -143,20 +128,18 @@ class _HomeScreenWidgetState extends State<HomeScreenWidget> {
 
   @override
   Widget build(BuildContext context) {
+    if (_screenList.length == 0) {
+      return null;
+    }
+
+    Map<String, dynamic> screenData = _screenList[_selectedIndex];
+
     return Scaffold(
-<<<<<<< Updated upstream
       appBar: AppBar(
-        title: const Text('Snake game'),
+        title: Text(screenData['title']),
       ),
-=======
-      appBar: screenData['title'] != null && screenData['title'].length > 0
-          ? AppBar(
-              title: Text(screenData['title']),
-            )
-          : null,
->>>>>>> Stashed changes
       body: Center(
-        child: _screenList[_selectedIndex],
+        child: screenData['screen'],
       ),
       bottomNavigationBar: BottomNavigationBar(
         items: const <BottomNavigationBarItem>[
