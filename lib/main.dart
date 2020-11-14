@@ -1,16 +1,17 @@
 import 'dart:async';
-
+import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:path/path.dart';
-import 'package:snake_game/business_logic/GameScoreBusinessLogicComponent.dart';
-import 'package:snake_game/repository/game_score.dart';
 import 'package:sqflite/sqflite.dart';
 
-import 'package:flutter/material.dart';
+import 'package:snake_game/db_model.dart';
+
+import 'package:snake_game/business_logic/GameScoreBusinessLogicComponent.dart';
+import 'package:snake_game/repository/game_score.dart';
 
 import 'package:snake_game/screen/game_screen/main.dart';
 import 'package:snake_game/screen/score_screen/main.dart';
-import 'package:snake_game/db_model.dart';
+import 'package:snake_game/screen/board_screen/main.dart';
 
 const APP_VERSION = "1.0.0";
 const DB_VERSION = 1;
@@ -113,8 +114,8 @@ class _HomeScreenWidgetState extends State<HomeScreenWidget> {
           ),
         },
         {
-          'title': 'Board',
-          'screen': Text('Board'),
+          'title': '',
+          'screen': BoardScreen(),
         },
       ];
     });
@@ -135,9 +136,11 @@ class _HomeScreenWidgetState extends State<HomeScreenWidget> {
     Map<String, dynamic> screenData = _screenList[_selectedIndex];
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(screenData['title']),
-      ),
+      appBar: screenData['title'] != null && screenData['title'].length > 0
+          ? AppBar(
+              title: Text(screenData['title']),
+            )
+          : null,
       body: Center(
         child: screenData['screen'],
       ),
