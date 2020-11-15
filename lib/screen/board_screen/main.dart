@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:snake_game/screen/board_screen/widgets/main_picture_widget.dart';
 import 'package:snake_game/screen/board_screen/widgets/title_widget.dart';
 import 'package:snake_game/screen/board_screen/widgets/tag_widget.dart';
+import 'package:snake_game/widget/post_widget.dart';
 
 class BoardScreen extends StatefulWidget {
   @override
@@ -42,6 +43,7 @@ class _BoardScreenState extends State<BoardScreen> {
           TagWidget(
             tagName: _tagName,
           ),
+          PostWidget(),
         ],
       ),
     );
