@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:snake_game/screen/board_screen/widgets/main_picture_widget.dart';
 import 'package:snake_game/screen/board_screen/widgets/title_widget.dart';
+import 'package:snake_game/screen/board_screen/widgets/tag_widget.dart';
 
 class BoardScreen extends StatefulWidget {
   @override
@@ -17,6 +18,8 @@ class _BoardScreenState extends State<BoardScreen> {
   final int _memberCount = 33;
   final Color _invitationColor = Colors.redAccent;
   final Color _writeButtonColor = Colors.redAccent;
+
+  final String _tagName = '실천공약';
 
   @override
   Widget build(BuildContext context) {
@@ -35,6 +38,9 @@ class _BoardScreenState extends State<BoardScreen> {
             memberCount: _memberCount,
             writeButtonColor: _writeButtonColor,
             invitationColor: _invitationColor,
+          ),
+          TagWidget(
+            tagName: _tagName,
           ),
         ],
       ),
